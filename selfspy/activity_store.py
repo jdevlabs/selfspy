@@ -22,24 +22,22 @@ NOW = datetime.now
 import sqlalchemy
 
 import platform
-if platform.system() == 'Darwin':
-    from selfspy import sniff_cocoa as sniffer
-elif platform.system() == 'Windows':
-    from selfspy import sniff_win as sniffer
-else:
-    from selfspy import sniff_x as sniffer
+from selfspy import sniff_x as sniffer
 
 from selfspy import models
 from selfspy.models import Process, Window, Geometry, Click, Keys
 
 
-SKIP_MODIFIERS = {"", "Shift_L", "Control_L", "Super_L", "Alt_L", "Super_R", "Control_R", "Shift_R", "[65027]"}  # [65027] is AltGr in X for some ungodly reason.
+# [65027] is AltGr in X for some ungodly reason.
+SKIP_MODIFIERS = {"", "Shift_L", "Control_L", "Super_L",
+                  "Alt_L", "Super_R", "Control_R", "Shift_R", "[65027]"}
 
 SCROLL_BUTTONS = {4, 5, 6, 7}
 SCROLL_COOLOFF = 10  # seconds
 
 
 class Display:
+
     def __init__(self):
         self.proc_id = None
         self.win_id = None
@@ -47,6 +45,7 @@ class Display:
 
 
 class KeyPress:
+
     def __init__(self, key, time, is_repeat):
         self.key = key
         self.time = time
@@ -54,6 +53,7 @@ class KeyPress:
 
 
 class ActivityStore:
+
     def __init__(self, db_name, encrypter=None, store_text=True, repeat_char=True):
         self.session_maker = models.initialize(db_name)
 
@@ -146,7 +146,8 @@ class ActivityStore:
         if not (self.current_window.proc_id == cur_process.id
                 and self.current_window.win_id == cur_window.id):
             self.trycommit()
-            self.store_keys()  # happens before as these keypresses belong to the previous window
+            # happens before as these keypresses belong to the previous window
+            self.store_keys()
             self.current_window.proc_id = cur_process.id
             self.current_window.win_id = cur_window.id
             self.current_window.geo_id = cur_geometry.id
@@ -159,7 +160,8 @@ class ActivityStore:
             key = press.key
             if specials_in_row and key != lastpress.key:
                 if specials_in_row > 1:
-                    lastpress.key = '%s]x%d>' % (lastpress.key[:-2], specials_in_row)
+                    lastpress.key = '%s]x%d>' % (
+                        lastpress.key[:-2], specials_in_row)
 
                 newpresses.append(lastpress)
                 specials_in_row = 0
@@ -172,7 +174,8 @@ class ActivityStore:
 
         if specials_in_row:
             if specials_in_row > 1:
-                lastpress.key = '%s]x%d>' % (lastpress.key[:-2], specials_in_row)
+                lastpress.key = '%s]x%d>' % (
+                    lastpress.key[:-2], specials_in_row)
             newpresses.append(lastpress)
 
         self.key_presses = newpresses
@@ -227,7 +230,8 @@ class ActivityStore:
         elif len(string) > 1:
             string = '<[%s]>' % string
 
-        self.key_presses.append(KeyPress(string, now - self.last_key_time, is_repeat))
+        self.key_presses.append(
+            KeyPress(string, now - self.last_key_time, is_repeat))
         self.last_key_time = now
 
     def store_click(self, button, x, y):
